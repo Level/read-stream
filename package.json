@@ -1,7 +1,7 @@
 {
-  "name": "level-iterator-stream",
-  "version": "5.0.0",
-  "description": "Turn an abstract-leveldown iterator into a readable stream",
+  "name": "level-read-stream",
+  "version": "0.0.0",
+  "description": "Turn an abstract-level iterator into a readable stream",
   "license": "MIT",
   "scripts": {
     "test": "standard && hallmark && (nyc -s node test.js | faucet) && nyc report",
@@ -11,9 +11,7 @@
   },
   "files": [
     "index.js",
-    "package.json",
     "CHANGELOG.md",
-    "LICENSE.md",
     "UPGRADING.md"
   ],
   "dependencies": {
@@ -31,10 +29,12 @@
     "tape": "^5.0.1",
     "through2": "^4.0.2"
   },
-  "repository": "Level/iterator-stream",
-  "homepage": "https://github.com/Level/iterator-stream",
+  "repository": "Level/read-stream",
+  "homepage": "https://github.com/Level/read-stream",
   "keywords": [
-    "level"
+    "level",
+    "stream",
+    "abstract-level"
   ],
   "engines": {
     "node": ">=10"

@@ -2,7 +2,7 @@
 
 const test = require('tape')
 const memdown = require('memdown')
-const iteratorStream = require('.')
+const createReadStream = require('.')
 const through2 = require('through2')
 const addSecretListener = require('secret-event-listener')
 
@@ -26,7 +26,7 @@ test('setup', function (t) {
 
 test('keys and values', function (t) {
   let idx = 0
-  const stream = iteratorStream(db.iterator())
+  const stream = createReadStream(db.iterator())
   stream.pipe(through2.obj(function (kv, _, done) {
     t.ok(Buffer.isBuffer(kv.key))
     t.ok(Buffer.isBuffer(kv.value))
@@ -44,7 +44,7 @@ test('keys and values', function (t) {
 
 test('normal event order', function (t) {
   const iterator = db.iterator()
-  const stream = iteratorStream(iterator)
+  const stream = createReadStream(iterator)
 
   const order = monitor(iterator, stream, function () {
     t.same(order.filter(withoutDataEvents), ['_end', 'end', 'close'])
@@ -56,7 +56,7 @@ test('normal event order', function (t) {
 
 test('error from iterator.next', function (t) {
   const iterator = db.iterator()
-  const stream = iteratorStream(iterator)
+  const stream = createReadStream(iterator)
 
   const order = monitor(iterator, stream, function () {
     t.same(order, ['_end', 'error: next', 'close'], 'event order')
@@ -72,7 +72,7 @@ test('error from iterator.next', function (t) {
 
 test('error from iterator end', function (t) {
   const iterator = db.iterator()
-  const stream = iteratorStream(iterator)
+  const stream = createReadStream(iterator)
   const _end = iterator._end
 
   const order = monitor(iterator, stream, function () {
@@ -93,7 +93,7 @@ test('error from iterator end', function (t) {
 
 test('.destroy', function (t) {
   const iterator = db.iterator()
-  const stream = iteratorStream(iterator)
+  const stream = createReadStream(iterator)
 
   const order = monitor(iterator, stream, function () {
     t.same(order, ['_end', 'close'])
@@ -105,7 +105,7 @@ test('.destroy', function (t) {
 
 test('.destroy(err)', function (t) {
   const iterator = db.iterator()
-  const stream = iteratorStream(iterator)
+  const stream = createReadStream(iterator)
 
   const order = monitor(iterator, stream, function () {
     t.same(order, ['_end', 'error: user', 'close'])
@@ -117,7 +117,7 @@ test('.destroy(err)', function (t) {
 
 test('.destroy(err, callback)', function (t) {
   const iterator = db.iterator()
-  const stream = iteratorStream(iterator)
+  const stream = createReadStream(iterator)
 
   const order = monitor(iterator, stream, function () {
     t.same(order, ['_end', 'callback', 'close'])
@@ -132,7 +132,7 @@ test('.destroy(err, callback)', function (t) {
 
 test('.destroy(null, callback)', function (t) {
   const iterator = db.iterator()
-  const stream = iteratorStream(iterator)
+  const stream = createReadStream(iterator)
 
   const order = monitor(iterator, stream, function () {
     t.same(order, ['_end', 'callback', 'close'])
@@ -147,7 +147,7 @@ test('.destroy(null, callback)', function (t) {
 
 test('.destroy() during iterator.next', function (t) {
   const iterator = db.iterator()
-  const stream = iteratorStream(iterator)
+  const stream = createReadStream(iterator)
 
   const order = monitor(iterator, stream, function () {
     t.same(order, ['_end', 'close'], 'event order')
@@ -163,7 +163,7 @@ test('.destroy() during iterator.next', function (t) {
 
 test('.destroy(err) during iterator.next', function (t) {
   const iterator = db.iterator()
-  const stream = iteratorStream(iterator)
+  const stream = createReadStream(iterator)
 
   const order = monitor(iterator, stream, function () {
     t.same(order, ['_end', 'error: user', 'close'], 'event order')
@@ -179,7 +179,7 @@ test('.destroy(err) during iterator.next', function (t) {
 
 test('.destroy(err, callback) during iterator.next', function (t) {
   const iterator = db.iterator()
-  const stream = iteratorStream(iterator)
+  const stream = createReadStream(iterator)
 
   const order = monitor(iterator, stream, function () {
     t.same(order, ['_end', 'callback', 'close'], 'event order')
@@ -198,7 +198,7 @@ test('.destroy(err, callback) during iterator.next', function (t) {
 
 test('.destroy(null, callback) during iterator.next', function (t) {
   const iterator = db.iterator()
-  const stream = iteratorStream(iterator)
+  const stream = createReadStream(iterator)
 
   const order = monitor(iterator, stream, function () {
     t.same(order, ['_end', 'callback', 'close'], 'event order')
@@ -223,7 +223,7 @@ test('.destroy during iterator.next 1', function (t) {
     next(cb)
     stream.destroy()
   }
-  const stream = iteratorStream(iterator)
+  const stream = createReadStream(iterator)
   stream.on('data', function (data) {
     t.fail('should not be called')
   })
@@ -241,7 +241,7 @@ test('.destroy during iterator.next 2', function (t) {
       stream.destroy()
     }
   }
-  const stream = iteratorStream(iterator)
+  const stream = createReadStream(iterator)
   stream.on('data', function (data) {
     t.pass('should be called')
   })
@@ -258,7 +258,7 @@ test('.destroy after iterator.next 1', function (t) {
       t.pass('should be called')
     })
   }
-  const stream = iteratorStream(iterator)
+  const stream = createReadStream(iterator)
   stream.on('data', function (data) {
     t.fail('should not be called')
   })
@@ -278,7 +278,7 @@ test('.destroy after iterator.next 2', function (t) {
       t.pass('should be called')
     })
   }
-  const stream = iteratorStream(iterator)
+  const stream = createReadStream(iterator)
   stream.on('data', function (data) {
     t.pass('should be called')
   })
@@ -286,7 +286,7 @@ test('.destroy after iterator.next 2', function (t) {
 })
 
 test('keys=false', function (t) {
-  const stream = iteratorStream(db.iterator(), { keys: false })
+  const stream = createReadStream(db.iterator(), { keys: false })
   stream.once('data', function (value) {
     stream.destroy()
     t.equal(value.toString(), 'bar1')
@@ -295,7 +295,7 @@ test('keys=false', function (t) {
 })
 
 test('values=false', function (t) {
-  const stream = iteratorStream(db.iterator(), { values: false })
+  const stream = createReadStream(db.iterator(), { values: false })
   stream.once('data', function (key) {
     stream.destroy()
     t.equal(key.toString(), 'foobatch1')
@@ -307,7 +307,7 @@ test('values=false', function (t) {
 // to prevent GC of the iterator and therefor its db (esp. for native addons).
 test('keeps a reference to the iterator', function (t) {
   const it = db.iterator()
-  const stream = iteratorStream(it)
+  const stream = createReadStream(it)
 
   stream.on('close', function () {
     t.is(stream._iterator, it, 'has reference')
@@ -321,7 +321,7 @@ test('keeps a reference to the iterator', function (t) {
 test('it is safe to close db on end of stream', function (t) {
   // Set highWaterMark to 0 so that we don't preemptively fetch.
   const it = db.iterator({ highWaterMark: 0 })
-  const stream = iteratorStream(it)
+  const stream = createReadStream(it)
 
   stream.on('end', function () {
     // Although the underlying iterator is still alive at this point (before
