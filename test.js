@@ -310,7 +310,7 @@ test('keeps a reference to the iterator', function (t) {
   const stream = createReadStream(it)
 
   stream.on('close', function () {
-    t.is(stream._iterator, it, 'has reference')
+    t.is(stream.iterator, it, 'has reference')
     t.end()
   })
 
