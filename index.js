@@ -1,10 +1,10 @@
 'use strict'
 
-const inherits = require('inherits')
 const { Readable } = require('readable-stream')
 
 module.exports = ReadStream
-inherits(ReadStream, Readable)
+
+Object.setPrototypeOf(ReadStream.prototype, Readable.prototype)
 
 function ReadStream (iterator, options) {
   if (!(this instanceof ReadStream)) return new ReadStream(iterator, options)
