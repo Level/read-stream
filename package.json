@@ -1,7 +1,7 @@
 {
   "name": "level-read-stream",
   "version": "0.0.0",
-  "description": "Turn an abstract-level iterator into a readable stream",
+  "description": "Read from an abstract-level database using Node.js streams",
   "license": "MIT",
   "scripts": {
     "test": "standard && hallmark && (nyc -s node test.js | faucet) && nyc report",
@@ -26,8 +26,7 @@
     "nyc": "^15.1.0",
     "secret-event-listener": "^1.0.0",
     "standard": "^16.0.3",
-    "tape": "^5.0.1",
-    "through2": "^4.0.2"
+    "tape": "^5.0.1"
   },
   "repository": "Level/read-stream",
   "homepage": "https://github.com/Level/read-stream",

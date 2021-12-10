@@ -1,6 +1,8 @@
 # level-read-stream
 
-**Turn an [abstract-level](https://github.com/Level/abstract-level) iterator into a readable stream.**
+**Read from an [`abstract-level`](https://github.com/Level/abstract-level) database using Node.js streams.**
+
+> :pushpin: Which module should I use? What is `abstract-level`? Head over to the [FAQ](https://github.com/Level/community#faq).
 
 [![level badge][level-badge]](https://github.com/Level/awesome)
 [![npm](https://img.shields.io/npm/v/level-read-stream.svg)](https://www.npmjs.com/package/level-read-stream)
@@ -13,22 +15,48 @@
 
 ## Usage
 
-_If you are upgrading: please see [UPGRADING.md](UPGRADING.md)._
+_If you are migrating from `levelup` or `level <= 7`: please see [UPGRADING.md](UPGRADING.md)._
 
 ```js
-const createReadStream = require('level-read-stream')
-const leveldown = require('leveldown')
+const { EntryStream } = require('level-read-stream')
+const { Writable, pipeline } = require('readable-stream')
 
-const db = leveldown(__dirname + '/db')
+await db.put('a', '1')
+await db.put('b', '2')
+await db.put('c', '3')
 
-db.open(function (err) {
-  if (err) throw err
-
-  const stream = createReadStream(db.iterator())
-  stream.on('data', function (kv) {
-    console.log('%s -> %s', kv.key, kv.value)
-  })
+const src = new EntryStream(db, {
+  gte: 'b'
 })
+
+const dst = new Writable({
+  write (entry, _, next) {
+    console.log('%s: %s', entry.key, entry.value)
+    next()
+  }
+})
+
+pipeline(src, dst)
+```
+
+Yields:
+
+```
+b: 2
+c: 3
+```
+
+To only read keys or values rather than entries:
+
+```js
+const { KeyStream, ValueStream } = require('level-read-stream')
+
+pipeline(new KeyStream(db), new Writable({
+  write (key, _, next) {
+    console.log(key)
+    next()
+  }
+}))
 ```
 
 ## Install
@@ -41,11 +69,31 @@ npm install level-read-stream
 
 ## API
 
-### `stream = createReadStream(iterator[, options])`
+### `stream = new EntryStream(db[, options])`
 
-Create a readable stream from `iterator`. The `options` are passed down to the `require('readable-stream').Readable` constructor, with `objectMode` forced to `true`. Set `options.keys` or `options.values` to `false` to only get keys or values. Otherwise receive `{ key, value }` objects.
+Create a readable stream that will yield entries. An entry is an object with `key` and `value` properties. The `db` argument must be an `abstract-level` database. The optional `options` object may contain:
 
-Upon stream end or `.destroy()` the `iterator` will be closed after which a `close` event is emitted on the stream.
+- `highWaterMark` (number): the maximum number of entries to buffer internally before ceasing to read further entries. Default 16.
+
+Any other options are forwarded to `db.iterator(options)`. The stream wraps that iterator. If you prefer to consume entries with `for await...of` then it's recommended to directly use `db.iterator()`. In either case, most databases will read from a snapshot (thus unaffected by simultaneous writes) as indicated by `db.supports.snapshots`.
+
+Upon stream end or having called `stream.destroy()` the underlying iterator will be closed after which a `close` event is emitted on the stream.
+
+### `stream = new KeyStream(db[, options])`
+
+Same as `EntryStream` but yields keys instead of entries. If only keys are needed, using `KeyStream` may increase performance because values won't have to be fetched.
+
+### `stream = new ValueStream(db[, options])`
+
+Same as `EntryStream` but yields values instead of entries. If only values are needed, using `ValueStream` may increase performance because keys won't have to be fetched.
+
+### `stream`
+
+An instance of `EntryStream`, `KeyStream` or `ValueStream` has the following special properties.
+
+#### `stream.db`
+
+A read-only reference to the `db` that was passed to the stream constructor.
 
 ## Contributing
 

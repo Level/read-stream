@@ -3,54 +3,88 @@
 const { Readable } = require('readable-stream')
 
 const kIterator = Symbol('iterator')
-const kKeys = Symbol('keys')
-const kValues = Symbol('values')
+const kNext = Symbol('next')
 
-function ReadStream (iterator, options) {
-  if (!(this instanceof ReadStream)) {
-    return new ReadStream(iterator, options)
+class LevelReadStream extends Readable {
+  constructor (db, options) {
+    const { highWaterMark, ...rest } = options
+
+    super({
+      objectMode: true,
+      highWaterMark: highWaterMark || 16
+    })
+
+    this[kIterator] = db.iterator(rest)
+    this[kNext] = this[kNext].bind(this)
+
+    // NOTE: use autoDestroy option when it lands in readable-stream
+    this.once('end', this.destroy.bind(this, null, null))
   }
 
-  Readable.call(this, Object.assign({}, options, {
-    objectMode: true
-  }))
+  get db () {
+    return this[kIterator].db
+  }
 
-  this[kIterator] = iterator
-  this[kKeys] = options ? options.keys !== false : true
-  this[kValues] = options ? options.values !== false : true
+  _read () {
+    if (this.destroyed) return
+    this[kIterator].next(this[kNext])
+  }
 
-  this.on('end', this.destroy.bind(this, null, null))
+  _destroy (err, callback) {
+    this[kIterator].end(function (err2) {
+      callback(err || err2)
+    })
+  }
 }
 
-Object.setPrototypeOf(ReadStream.prototype, Readable.prototype)
+class Entry {
+  constructor (key, value) {
+    this.key = key
+    this.value = value
+  }
+}
 
-Object.defineProperty(ReadStream.prototype, 'iterator', {
-  get () { return this[kIterator] }
-})
+class EntryStream extends LevelReadStream {
+  constructor (db, options) {
+    super(db, { ...options, keys: true, values: true })
+  }
 
-ReadStream.prototype._read = function () {
-  if (this.destroyed) return
-
-  this[kIterator].next((err, key, value) => {
+  [kNext] (err, key, value) {
     if (this.destroyed) return
     if (err) return this.destroy(err)
 
     if (key === undefined && value === undefined) {
       this.push(null)
-    } else if (this[kKeys] !== false && this[kValues] === false) {
-      this.push(key)
-    } else if (this[kKeys] === false && this[kValues] !== false) {
-      this.push(value)
     } else {
-      this.push({ key, value })
+      this.push(new Entry(key, value))
     }
-  })
+  }
 }
 
-ReadStream.prototype._destroy = function (err, callback) {
-  this[kIterator].end(function (err2) {
-    callback(err || err2)
-  })
+class KeyStream extends LevelReadStream {
+  constructor (db, options) {
+    super(db, { ...options, keys: true, values: false })
+  }
+
+  [kNext] (err, key) {
+    if (this.destroyed) return
+    if (err) return this.destroy(err)
+    this.push(key === undefined ? null : key)
+  }
 }
 
-module.exports = ReadStream
+class ValueStream extends LevelReadStream {
+  constructor (db, options) {
+    super(db, { ...options, keys: false, values: true })
+  }
+
+  [kNext] (err, _, value) {
+    if (this.destroyed) return
+    if (err) return this.destroy(err)
+    this.push(value === undefined ? null : value)
+  }
+}
+
+exports.EntryStream = EntryStream
+exports.KeyStream = KeyStream
+exports.ValueStream = ValueStream
