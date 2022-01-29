@@ -4,18 +4,25 @@ const { Readable } = require('readable-stream')
 
 const kIterator = Symbol('iterator')
 const kNext = Symbol('next')
+const kNextv = Symbol('nextv')
+const kLegacy = Symbol('legacy')
+const kArrays = Symbol('arrays')
 
 class LevelReadStream extends Readable {
-  constructor (db, options) {
-    const { highWaterMark, ...rest } = options
+  constructor (db, method, options) {
+    const { highWaterMark, legacy, ...rest } = options || {}
 
     super({
       objectMode: true,
       highWaterMark: highWaterMark || 16
     })
 
-    this[kIterator] = db.iterator(rest)
+    this[kIterator] = db[method](rest)
     this[kNext] = this[kNext].bind(this)
+    this[kNextv] = this[kNextv].bind(this)
+
+    // Temporary, undocumented option for benchmarking and old tests
+    this[kLegacy] = !!legacy
 
     // NOTE: use autoDestroy option when it lands in readable-stream
     this.once('end', this.destroy.bind(this, null, null))
@@ -25,28 +32,47 @@ class LevelReadStream extends Readable {
     return this[kIterator].db
   }
 
-  _read () {
+  _read (size) {
     if (this.destroyed) return
-    this[kIterator].next(this[kNext])
+
+    if (this[kLegacy]) {
+      this[kIterator].next(this[kNext])
+    } else {
+      this[kIterator].nextv(size, this[kNextv])
+    }
+  }
+
+  [kNext] (err, item) {
+    if (this.destroyed) return
+    if (err) return this.destroy(err)
+    this.push(item === undefined ? null : item)
+  }
+
+  [kNextv] (err, items) {
+    if (this.destroyed) return
+    if (err) return this.destroy(err)
+
+    if (items.length === 0) {
+      this.push(null)
+    } else {
+      for (const item of items) {
+        this.push(item)
+      }
+    }
   }
 
   _destroy (err, callback) {
-    this[kIterator].end(function (err2) {
+    this[kIterator].close(function (err2) {
       callback(err || err2)
     })
   }
 }
 
-class Entry {
-  constructor (key, value) {
-    this.key = key
-    this.value = value
-  }
-}
-
 class EntryStream extends LevelReadStream {
   constructor (db, options) {
-    super(db, { ...options, keys: true, values: true })
+    const { arrays, ...forward } = options || {}
+    super(db, 'iterator', { ...forward, keys: true, values: true })
+    this[kArrays] = !!arrays
   }
 
   [kNext] (err, key, value) {
@@ -56,32 +82,37 @@ class EntryStream extends LevelReadStream {
     if (key === undefined && value === undefined) {
       this.push(null)
     } else {
-      this.push(new Entry(key, value))
+      this.push(this[kArrays] ? [key, value] : { key, value })
+    }
+  }
+
+  [kNextv] (err, entries) {
+    if (this.destroyed) return
+    if (err) return this.destroy(err)
+
+    if (entries.length === 0) {
+      this.push(null)
+    } else if (this[kArrays]) { // TODO: bench
+      for (const entry of entries) {
+        this.push(entry)
+      }
+    } else {
+      for (const [key, value] of entries) {
+        this.push({ key, value })
+      }
     }
   }
 }
 
 class KeyStream extends LevelReadStream {
   constructor (db, options) {
-    super(db, { ...options, keys: true, values: false })
-  }
-
-  [kNext] (err, key) {
-    if (this.destroyed) return
-    if (err) return this.destroy(err)
-    this.push(key === undefined ? null : key)
+    super(db, 'keys', options)
   }
 }
 
 class ValueStream extends LevelReadStream {
   constructor (db, options) {
-    super(db, { ...options, keys: false, values: true })
-  }
-
-  [kNext] (err, _, value) {
-    if (this.destroyed) return
-    if (err) return this.destroy(err)
-    this.push(value === undefined ? null : value)
+    super(db, 'values', options)
   }
 }
 
