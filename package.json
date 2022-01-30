@@ -22,7 +22,7 @@
     "airtap-playwright": "^1.0.1",
     "faucet": "^0.0.1",
     "hallmark": "^4.0.0",
-    "memory-level": "github:Level/memory-level",
+    "memory-level": "^1.0.0",
     "nyc": "^15.1.0",
     "secret-event-listener": "^1.0.0",
     "standard": "^16.0.3",
