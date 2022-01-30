@@ -1,6 +1,6 @@
 {
   "name": "level-read-stream",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Read from an abstract-level database using Node.js streams",
   "license": "MIT",
   "scripts": {
