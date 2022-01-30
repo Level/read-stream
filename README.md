@@ -73,7 +73,7 @@ npm install level-read-stream
 
 Create a readable stream that will yield entries. An entry is an object with `key` and `value` properties. The `db` argument must be an `abstract-level` database. The optional `options` object may contain:
 
-- `highWaterMark` (number): the maximum number of entries to buffer internally before ceasing to read further entries. Default 16.
+- `highWaterMark` (number): the maximum number of entries to buffer internally before ceasing to read further entries. Default 1000.
 
 Any other options are forwarded to `db.iterator(options)`. The stream wraps that iterator. If you prefer to consume entries with `for await...of` then it's recommended to directly use `db.iterator()`. In either case, most databases will read from a snapshot (thus unaffected by simultaneous writes) as indicated by `db.supports.snapshots`.
 
