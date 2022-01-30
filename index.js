@@ -6,7 +6,6 @@ const kIterator = Symbol('iterator')
 const kNext = Symbol('next')
 const kNextv = Symbol('nextv')
 const kLegacy = Symbol('legacy')
-const kArrays = Symbol('arrays')
 
 class LevelReadStream extends Readable {
   constructor (db, method, options) {
@@ -70,9 +69,7 @@ class LevelReadStream extends Readable {
 
 class EntryStream extends LevelReadStream {
   constructor (db, options) {
-    const { arrays, ...forward } = options || {}
-    super(db, 'iterator', { ...forward, keys: true, values: true })
-    this[kArrays] = !!arrays
+    super(db, 'iterator', { ...options, keys: true, values: true })
   }
 
   [kNext] (err, key, value) {
@@ -82,7 +79,7 @@ class EntryStream extends LevelReadStream {
     if (key === undefined && value === undefined) {
       this.push(null)
     } else {
-      this.push(this[kArrays] ? [key, value] : { key, value })
+      this.push({ key, value })
     }
   }
 
@@ -92,10 +89,6 @@ class EntryStream extends LevelReadStream {
 
     if (entries.length === 0) {
       this.push(null)
-    } else if (this[kArrays]) { // TODO: bench
-      for (const entry of entries) {
-        this.push(entry)
-      }
     } else {
       for (const [key, value] of entries) {
         this.push({ key, value })

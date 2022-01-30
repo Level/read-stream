@@ -88,7 +88,6 @@ npm install level-read-stream
 Create a readable stream that will yield entries. An entry is an object with `key` and `value` properties. The `db` argument must be an `abstract-level` database. The optional `options` object may contain:
 
 - `highWaterMark` (number): the maximum number of entries to buffer internally before ceasing to read further entries. Default 16.
-- `arrays` (boolean, default false): yield entries as `[key, value]` instead of `{ key, value }`.
 
 Any other options are forwarded to `db.iterator(options)`. The stream wraps that iterator. If you prefer to consume entries with `for await...of` then it's recommended to directly use `db.iterator()`. In either case, most databases will read from a snapshot (thus unaffected by simultaneous writes) as indicated by `db.supports.snapshots`.
 
@@ -96,11 +95,11 @@ Upon stream end or having called `stream.destroy()` the underlying iterator will
 
 ### `stream = new KeyStream(db[, options])`
 
-Same as `EntryStream` but yields keys instead of entries, using `db.keys()` instead of `db.iterator()`. If only keys are needed, using `KeyStream` may increase performance because values won't have to be fetched. The `arrays` option is not relevant.
+Same as `EntryStream` but yields keys instead of entries, using `db.keys()` instead of `db.iterator()`. If only keys are needed, using `KeyStream` may increase performance because values won't have to be fetched.
 
 ### `stream = new ValueStream(db[, options])`
 
-Same as `EntryStream` but yields values instead of entries, using `db.values()` instead of `db.iterator()`. If only values are needed, using `ValueStream` may increase performance because keys won't have to be fetched. The `arrays` option is not relevant.
+Same as `EntryStream` but yields values instead of entries, using `db.values()` instead of `db.iterator()`. If only values are needed, using `ValueStream` may increase performance because keys won't have to be fetched.
 
 ### `stream`
 

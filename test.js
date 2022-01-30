@@ -44,27 +44,11 @@ test('EntryStream', function (t) {
   }), t.ifError.bind(t))
 })
 
-test('EntryStream (arrays)', function (t) {
-  t.plan(2)
-
-  pipeline(new EntryStream(db, { arrays: true }), new Concat((acc) => {
-    t.same(acc, data.map(kv => [kv.key, kv.value]))
-  }), t.ifError.bind(t))
-})
-
 test('EntryStream (legacy next)', function (t) {
   t.plan(2)
 
   pipeline(new EntryStream(db, { legacy: true }), new Concat((acc) => {
     t.same(acc, data)
-  }), t.ifError.bind(t))
-})
-
-test('EntryStream (legacy next, arrays)', function (t) {
-  t.plan(2)
-
-  pipeline(new EntryStream(db, { legacy: true, arrays: true }), new Concat((acc) => {
-    t.same(acc, data.map(kv => [kv.key, kv.value]))
   }), t.ifError.bind(t))
 })
 
