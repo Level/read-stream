@@ -3,13 +3,11 @@
 const { Readable } = require('readable-stream')
 
 const kIterator = Symbol('iterator')
-const kNext = Symbol('next')
 const kNextv = Symbol('nextv')
-const kLegacy = Symbol('legacy')
 
 class LevelReadStream extends Readable {
   constructor (db, method, options) {
-    const { highWaterMark, legacy, ...rest } = options || {}
+    const { highWaterMark, ...rest } = options || {}
 
     super({
       objectMode: true,
@@ -17,11 +15,7 @@ class LevelReadStream extends Readable {
     })
 
     this[kIterator] = db[method](rest)
-    this[kNext] = this[kNext].bind(this)
     this[kNextv] = this[kNextv].bind(this)
-
-    // Temporary, undocumented option for benchmarking and old tests
-    this[kLegacy] = !!legacy
 
     // NOTE: use autoDestroy option when it lands in readable-stream
     this.once('end', this.destroy.bind(this, null, null))
@@ -33,18 +27,7 @@ class LevelReadStream extends Readable {
 
   _read (size) {
     if (this.destroyed) return
-
-    if (this[kLegacy]) {
-      this[kIterator].next(this[kNext])
-    } else {
-      this[kIterator].nextv(size, this[kNextv])
-    }
-  }
-
-  [kNext] (err, item) {
-    if (this.destroyed) return
-    if (err) return this.destroy(err)
-    this.push(item === undefined ? null : item)
+    this[kIterator].nextv(size, this[kNextv])
   }
 
   [kNextv] (err, items) {
@@ -70,17 +53,6 @@ class LevelReadStream extends Readable {
 class EntryStream extends LevelReadStream {
   constructor (db, options) {
     super(db, 'iterator', { ...options, keys: true, values: true })
-  }
-
-  [kNext] (err, key, value) {
-    if (this.destroyed) return
-    if (err) return this.destroy(err)
-
-    if (key === undefined && value === undefined) {
-      this.push(null)
-    } else {
-      this.push({ key, value })
-    }
   }
 
   [kNextv] (err, entries) {
