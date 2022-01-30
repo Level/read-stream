@@ -3,19 +3,19 @@
 const { Readable } = require('readable-stream')
 
 const kIterator = Symbol('iterator')
-const kNext = Symbol('next')
+const kNextv = Symbol('nextv')
 
 class LevelReadStream extends Readable {
-  constructor (db, options) {
-    const { highWaterMark, ...rest } = options
+  constructor (db, method, options) {
+    const { highWaterMark, ...rest } = options || {}
 
     super({
       objectMode: true,
-      highWaterMark: highWaterMark || 16
+      highWaterMark: highWaterMark || 1000
     })
 
-    this[kIterator] = db.iterator(rest)
-    this[kNext] = this[kNext].bind(this)
+    this[kIterator] = db[method](rest)
+    this[kNextv] = this[kNextv].bind(this)
 
     // NOTE: use autoDestroy option when it lands in readable-stream
     this.once('end', this.destroy.bind(this, null, null))
@@ -25,63 +25,59 @@ class LevelReadStream extends Readable {
     return this[kIterator].db
   }
 
-  _read () {
+  _read (size) {
     if (this.destroyed) return
-    this[kIterator].next(this[kNext])
+    this[kIterator].nextv(size, this[kNextv])
+  }
+
+  [kNextv] (err, items) {
+    if (this.destroyed) return
+    if (err) return this.destroy(err)
+
+    if (items.length === 0) {
+      this.push(null)
+    } else {
+      for (const item of items) {
+        this.push(item)
+      }
+    }
   }
 
   _destroy (err, callback) {
-    this[kIterator].end(function (err2) {
+    this[kIterator].close(function (err2) {
       callback(err || err2)
     })
   }
 }
 
-class Entry {
-  constructor (key, value) {
-    this.key = key
-    this.value = value
-  }
-}
-
 class EntryStream extends LevelReadStream {
   constructor (db, options) {
-    super(db, { ...options, keys: true, values: true })
+    super(db, 'iterator', { ...options, keys: true, values: true })
   }
 
-  [kNext] (err, key, value) {
+  [kNextv] (err, entries) {
     if (this.destroyed) return
     if (err) return this.destroy(err)
 
-    if (key === undefined && value === undefined) {
+    if (entries.length === 0) {
       this.push(null)
     } else {
-      this.push(new Entry(key, value))
+      for (const [key, value] of entries) {
+        this.push({ key, value })
+      }
     }
   }
 }
 
 class KeyStream extends LevelReadStream {
   constructor (db, options) {
-    super(db, { ...options, keys: true, values: false })
-  }
-
-  [kNext] (err, key) {
-    if (this.destroyed) return
-    if (err) return this.destroy(err)
-    this.push(key === undefined ? null : key)
+    super(db, 'keys', options)
   }
 }
 
 class ValueStream extends LevelReadStream {
   constructor (db, options) {
-    super(db, { ...options, keys: false, values: true })
-  }
-
-  [kNext] (err, _, value) {
-    if (this.destroyed) return
-    if (err) return this.destroy(err)
-    this.push(value === undefined ? null : value)
+    super(db, 'values', options)
   }
 }
 

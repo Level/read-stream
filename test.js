@@ -1,7 +1,7 @@
 'use strict'
 
 const test = require('tape')
-const memdown = require('memdown')
+const { MemoryLevel } = require('memory-level')
 const { EntryStream, KeyStream, ValueStream } = require('.')
 const { Writable, pipeline } = require('readable-stream')
 const addSecretListener = require('secret-event-listener')
@@ -15,14 +15,16 @@ const data = [
 ]
 
 test('setup', function (t) {
-  db = memdown()
-
-  const original = db.iterator
+  db = new MemoryLevel()
 
   // Keep track of last created iterator for test purposes
-  db.iterator = function (...args) {
-    const it = db[kLastIterator] = original.apply(this, args)
-    return it
+  for (const method of ['iterator', 'keys', 'values']) {
+    const original = db[method]
+
+    db[method] = function (...args) {
+      const it = db[kLastIterator] = original.apply(this, args)
+      return it
+    }
   }
 
   db.open(function (err) {
@@ -38,11 +40,6 @@ test('EntryStream', function (t) {
   t.plan(2)
 
   pipeline(new EntryStream(db), new Concat((acc) => {
-    acc = acc.map(({ key, value }) => {
-      // TODO: remove toString() once memdown is replaced with abstract-level
-      return { key: key.toString(), value: value.toString() }
-    })
-
     t.same(acc, data)
   }), t.ifError.bind(t))
 })
@@ -51,8 +48,7 @@ test('KeyStream', function (t) {
   t.plan(2)
 
   pipeline(new KeyStream(db), new Concat((acc) => {
-    // TODO: remove toString() once memdown is replaced with abstract-level
-    t.same(acc.map(x => x.toString()), data.map(x => x.key))
+    t.same(acc, data.map(x => x.key))
   }), t.ifError.bind(t))
 })
 
@@ -60,8 +56,7 @@ test('ValueStream', function (t) {
   t.plan(2)
 
   pipeline(new ValueStream(db), new Concat((acc) => {
-    // TODO: remove toString() once memdown is replaced with abstract-level
-    t.same(acc.map(x => x.toString()), data.map(x => x.value))
+    t.same(acc, data.map(x => x.value))
   }), t.ifError.bind(t))
 })
 
@@ -72,43 +67,23 @@ for (const Ctor of [EntryStream, KeyStream, ValueStream]) {
     const stream = new Ctor(db)
 
     const order = monitor(stream, function () {
-      t.same(order.filter(withoutDataEvents), ['_end', 'end', 'close'])
+      t.same(order.filter(withoutDataEvents), ['_close', 'end', 'close'])
       t.end()
     })
 
     stream.resume()
   })
 
-  test(name + ': error from iterator.next', function (t) {
+  test(name + ': error from iterator.nextv', function (t) {
     const stream = new Ctor(db)
 
     const order = monitor(stream, function () {
-      t.same(order, ['_end', 'error: next', 'close'], 'event order')
+      t.same(order, ['_close', 'error: nextv', 'close'], 'event order')
       t.end()
     })
 
-    db[kLastIterator].next = function (cb) {
-      process.nextTick(cb, new Error('next'))
-    }
-
-    stream.resume()
-  })
-
-  test(name + ': error from iterator end', function (t) {
-    const stream = new Ctor(db)
-    const _end = db[kLastIterator]._end
-
-    const order = monitor(stream, function () {
-      t.same(order.filter(withoutDataEvents), ['_end', 'end', 'error: end', 'close'])
-      t.end()
-    })
-
-    db[kLastIterator]._end = function (cb) {
-      order.push('_end')
-      _end.call(this, function (err) {
-        t.ifError(err)
-        cb(new Error('end'))
-      })
+    db[kLastIterator]._nextv = function (size, options, cb) {
+      process.nextTick(cb, new Error('nextv'))
     }
 
     stream.resume()
@@ -117,7 +92,7 @@ for (const Ctor of [EntryStream, KeyStream, ValueStream]) {
   test(name + ': destroy', function (t) {
     const stream = new Ctor(db)
     const order = monitor(stream, function () {
-      t.same(order, ['_end', 'close'])
+      t.same(order, ['_close', 'close'])
       t.end()
     })
 
@@ -127,7 +102,7 @@ for (const Ctor of [EntryStream, KeyStream, ValueStream]) {
   test(name + ': destroy(err)', function (t) {
     const stream = new Ctor(db)
     const order = monitor(stream, function () {
-      t.same(order, ['_end', 'error: user', 'close'])
+      t.same(order, ['_close', 'error: user', 'close'])
       t.end()
     })
 
@@ -137,7 +112,7 @@ for (const Ctor of [EntryStream, KeyStream, ValueStream]) {
   test(name + ': destroy(err, callback)', function (t) {
     const stream = new Ctor(db)
     const order = monitor(stream, function () {
-      t.same(order, ['_end', 'callback', 'close'])
+      t.same(order, ['_close', 'callback', 'close'])
       t.end()
     })
 
@@ -150,7 +125,7 @@ for (const Ctor of [EntryStream, KeyStream, ValueStream]) {
   test(name + ': destroy(null, callback)', function (t) {
     const stream = new Ctor(db)
     const order = monitor(stream, function () {
-      t.same(order, ['_end', 'callback', 'close'])
+      t.same(order, ['_close', 'callback', 'close'])
       t.end()
     })
 
@@ -160,43 +135,43 @@ for (const Ctor of [EntryStream, KeyStream, ValueStream]) {
     })
   })
 
-  test(name + ': destroy() during iterator.next', function (t) {
+  test(name + ': destroy() during iterator.nextv', function (t) {
     const stream = new Ctor(db)
     const order = monitor(stream, function () {
-      t.same(order, ['_end', 'close'], 'event order')
+      t.same(order, ['_close', 'close'], 'event order')
       t.end()
     })
 
-    db[kLastIterator].next = function () {
+    db[kLastIterator].nextv = function () {
       stream.destroy()
     }
 
     stream.resume()
   })
 
-  test(name + ': destroy(err) during iterator.next', function (t) {
+  test(name + ': destroy(err) during iterator.nextv', function (t) {
     const stream = new Ctor(db)
     const order = monitor(stream, function () {
-      t.same(order, ['_end', 'error: user', 'close'], 'event order')
+      t.same(order, ['_close', 'error: user', 'close'], 'event order')
       t.end()
     })
 
-    db[kLastIterator].next = function (cb) {
+    db[kLastIterator].nextv = function (size, options, cb) {
       stream.destroy(new Error('user'))
     }
 
     stream.resume()
   })
 
-  test(name + ': destroy(err, callback) during iterator.next', function (t) {
+  test(name + ': destroy(err, callback) during iterator.nextv', function (t) {
     const stream = new Ctor(db)
 
     const order = monitor(stream, function () {
-      t.same(order, ['_end', 'callback', 'close'], 'event order')
+      t.same(order, ['_close', 'callback', 'close'], 'event order')
       t.end()
     })
 
-    db[kLastIterator].next = function (cb) {
+    db[kLastIterator].nextv = function (size, options, cb) {
       stream.destroy(new Error('user'), function (err) {
         order.push('callback')
         t.is(err.message, 'user', 'got error')
@@ -206,15 +181,15 @@ for (const Ctor of [EntryStream, KeyStream, ValueStream]) {
     stream.resume()
   })
 
-  test(name + ': destroy(null, callback) during iterator.next', function (t) {
+  test(name + ': destroy(null, callback) during iterator.nextv', function (t) {
     const stream = new Ctor(db)
 
     const order = monitor(stream, function () {
-      t.same(order, ['_end', 'callback', 'close'], 'event order')
+      t.same(order, ['_close', 'callback', 'close'], 'event order')
       t.end()
     })
 
-    db[kLastIterator].next = function (cb) {
+    db[kLastIterator].nextv = function (size, options, cb) {
       stream.destroy(null, function (err) {
         order.push('callback')
         t.ifError(err, 'no error')
@@ -224,13 +199,13 @@ for (const Ctor of [EntryStream, KeyStream, ValueStream]) {
     stream.resume()
   })
 
-  test(name + ': destroy during iterator.next 1', function (t) {
+  test(name + ': destroy during iterator.nextv 1', function (t) {
     const stream = new Ctor(db)
     const iterator = db[kLastIterator]
-    const next = iterator.next.bind(iterator)
-    iterator.next = function (cb) {
+    const nextv = iterator.nextv.bind(iterator)
+    iterator.nextv = function (size, cb) {
       t.pass('should be called once')
-      next(cb)
+      nextv(size, cb)
       stream.destroy()
     }
     stream.on('data', function (data) {
@@ -239,14 +214,14 @@ for (const Ctor of [EntryStream, KeyStream, ValueStream]) {
     stream.on('close', t.end.bind(t))
   })
 
-  test(name + ': destroy during iterator.next 2', function (t) {
+  test(name + ': destroy during iterator.nextv 2', function (t) {
     const stream = new Ctor(db)
     const iterator = db[kLastIterator]
-    const next = iterator.next.bind(iterator)
+    const nextv = iterator.nextv.bind(iterator)
     let count = 0
-    iterator.next = function (cb) {
+    iterator.nextv = function (size, cb) {
       t.pass('should be called')
-      next(cb)
+      nextv(size, cb)
       if (++count === 2) {
         stream.destroy()
       }
@@ -257,12 +232,12 @@ for (const Ctor of [EntryStream, KeyStream, ValueStream]) {
     stream.on('close', t.end.bind(t))
   })
 
-  test(name + ': destroy after iterator.next 1', function (t) {
+  test(name + ': destroy after iterator.nextv 1', function (t) {
     const stream = new Ctor(db)
     const iterator = db[kLastIterator]
-    const next = iterator.next.bind(iterator)
-    iterator.next = function (cb) {
-      next(function (err, key, value) {
+    const nextv = iterator.nextv.bind(iterator)
+    iterator.nextv = function (size, cb) {
+      nextv(size, function (err, key, value) {
         stream.destroy()
         cb(err, key, value)
         t.pass('should be called')
@@ -274,13 +249,13 @@ for (const Ctor of [EntryStream, KeyStream, ValueStream]) {
     stream.on('close', t.end.bind(t))
   })
 
-  test(name + ': destroy after iterator.next 2', function (t) {
+  test(name + ': destroy after iterator.nextv 2', function (t) {
     const stream = new Ctor(db)
     const iterator = db[kLastIterator]
-    const next = iterator.next.bind(iterator)
+    const nextv = iterator.nextv.bind(iterator)
     let count = 0
-    iterator.next = function (cb) {
-      next(function (err, key, value) {
+    iterator.nextv = function (size, cb) {
+      nextv(size, function (err, key, value) {
         if (++count === 2) {
           stream.destroy()
         }
@@ -336,7 +311,7 @@ test('it is safe to close db on end of stream', function (t) {
 function monitor (stream, onClose) {
   const order = []
 
-  ;['_next', '_end'].forEach(function (method) {
+  ;['_next', '_nextv', '_close'].forEach(function (method) {
     const original = db[kLastIterator][method]
 
     db[kLastIterator][method] = function () {
@@ -361,7 +336,7 @@ function monitor (stream, onClose) {
 }
 
 function withoutDataEvents (event) {
-  return event !== '_next' && event !== 'data'
+  return event !== '_next' && event !== '_nextv' && event !== 'data'
 }
 
 class Concat extends Writable {

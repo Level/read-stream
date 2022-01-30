@@ -81,11 +81,11 @@ Upon stream end or having called `stream.destroy()` the underlying iterator will
 
 ### `stream = new KeyStream(db[, options])`
 
-Same as `EntryStream` but yields keys instead of entries. If only keys are needed, using `KeyStream` may increase performance because values won't have to be fetched.
+Same as `EntryStream` but yields keys instead of entries, using `db.keys()` instead of `db.iterator()`. If only keys are needed, using `KeyStream` may increase performance because values won't have to be fetched.
 
 ### `stream = new ValueStream(db[, options])`
 
-Same as `EntryStream` but yields values instead of entries. If only values are needed, using `ValueStream` may increase performance because keys won't have to be fetched.
+Same as `EntryStream` but yields values instead of entries, using `db.values()` instead of `db.iterator()`. If only values are needed, using `ValueStream` may increase performance because keys won't have to be fetched.
 
 ### `stream`
 
