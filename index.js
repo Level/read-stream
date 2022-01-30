@@ -11,7 +11,7 @@ class LevelReadStream extends Readable {
 
     super({
       objectMode: true,
-      highWaterMark: highWaterMark || 16
+      highWaterMark: highWaterMark || 1000
     })
 
     this[kIterator] = db[method](rest)
