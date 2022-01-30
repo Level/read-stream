@@ -59,20 +59,6 @@ pipeline(new KeyStream(db), new Writable({
 }))
 ```
 
-To yield array entries instead of objects:
-
-```js
-const src = new EntryStream(db, { arrays: true })
-const dst = new Writable({
-  write ([key, value], _, next) {
-    console.log('%s: %s', key, value)
-    next()
-  }
-})
-
-pipeline(src, dst)
-```
-
 ## Install
 
 With [npm](https://npmjs.org) do:
