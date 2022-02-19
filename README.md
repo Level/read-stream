@@ -67,6 +67,8 @@ With [npm](https://npmjs.org) do:
 npm install level-read-stream
 ```
 
+Usage from TypeScript also requires `npm install @types/readable-stream`.
+
 ## API
 
 ### `stream = new EntryStream(db[, options])`

@@ -1,7 +1,7 @@
 import { Readable } from 'readable-stream'
 
 // Assumed to be installed side-by-side, declared as an optional peerDependency.
-import type {
+import {
   AbstractLevel,
   AbstractIteratorOptions,
   AbstractKeyIteratorOptions,
