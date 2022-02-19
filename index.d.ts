@@ -22,7 +22,7 @@ export class EntryStream<K, V, TDatabase = AbstractLevel<any, any, any>> extends
    * @param db Database to read from.
    * @param options Options for the stream and its underlying iterator.
    */
-  constructor (db: TDatabase, options?: (LevelReadStreamOptions & AbstractIteratorOptions<K, V>) | undefined)
+  constructor (db: TDatabase, options?: (ReadStreamOptions & Omit<AbstractIteratorOptions<K, V>, 'keys' | 'values'>) | undefined)
 
   // TODO: support passing in an iterator so that its implementation-specific options are typed?
   // constructor (iterator: AbstractIterator<TDatabase, K, V>, options?: LevelReadStreamOptions | undefined)
@@ -37,7 +37,7 @@ export class KeyStream<K, TDatabase = AbstractLevel<any, any, any>> extends Leve
    * @param db Database to read from.
    * @param options Options for the stream and its underlying iterator.
    */
-  constructor (db: TDatabase, options?: (LevelReadStreamOptions & AbstractKeyIteratorOptions<K>) | undefined)
+  constructor (db: TDatabase, options?: (ReadStreamOptions & AbstractKeyIteratorOptions<K>) | undefined)
 }
 
 /**
@@ -49,10 +49,10 @@ export class ValueStream<K, V, TDatabase = AbstractLevel<any, any, any>> extends
    * @param db Database to read from.
    * @param options Options for the stream and its underlying iterator.
    */
-  constructor (db: TDatabase, options?: (LevelReadStreamOptions & AbstractValueIteratorOptions<K, V>) | undefined)
+  constructor (db: TDatabase, options?: (ReadStreamOptions & AbstractValueIteratorOptions<K, V>) | undefined)
 }
 
-export interface LevelReadStreamOptions {
+export interface ReadStreamOptions {
   /**
    * The maximum number of items to buffer internally before ceasing to read further
    * items.
