@@ -2,7 +2,7 @@
 
 **Read from an [`abstract-level`](https://github.com/Level/abstract-level) database using Node.js streams.**
 
-> :pushpin: Which module should I use? What is `abstract-level`? Head over to the [FAQ](https://github.com/Level/community#faq).
+> :pushpin: To instead consume data using Web Streams, see [`level-web-stream`](https://github.com/Level/web-stream).
 
 [![level badge][level-badge]](https://github.com/Level/awesome)
 [![npm](https://img.shields.io/npm/v/level-read-stream.svg)](https://www.npmjs.com/package/level-read-stream)
