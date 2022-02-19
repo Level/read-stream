@@ -1,7 +1,12 @@
 import { Readable } from 'readable-stream'
 
-// TODO: can typescript resolve this, if not in our dependencies?
-import { AbstractLevel, AbstractIteratorOptions, AbstractKeyIteratorOptions, AbstractValueIteratorOptions } from 'abstract-level'
+// Assumed to be installed side-by-side, declared as an optional peerDependency.
+import type {
+  AbstractLevel,
+  AbstractIteratorOptions,
+  AbstractKeyIteratorOptions,
+  AbstractValueIteratorOptions
+} from 'abstract-level'
 
 // NOTE: the types of readable-stream don't have generic type parameters
 declare class LevelReadStream<T, TDatabase> extends Readable {

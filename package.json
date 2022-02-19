@@ -20,6 +20,14 @@
   "dependencies": {
     "readable-stream": "^3.4.0"
   },
+  "peerDependencies": {
+    "abstract-level": "^1.0.0"
+  },
+  "peerDependenciesMeta": {
+    "abstract-level": {
+      "optional": true
+    }
+  },
   "devDependencies": {
     "@types/readable-stream": "^2.3.13",
     "@voxpelli/tsconfig": "^3.1.0",
