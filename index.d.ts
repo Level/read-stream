@@ -65,4 +65,24 @@ export interface ReadStreamOptions {
    * @defaultValue `1000`
    */
   highWaterMark?: number | undefined
+
+  /**
+   * Limit the amount of data that the underlying iterator will hold in memory.
+   *
+   * Only supported by [`classic-level`][1] and [`rocks-level`][2], and possibly by
+   * similar `abstract-level` implementations that are backed by a database on disk.
+   *
+   * [1]: https://github.com/Level/classic-level
+   * [2]: https://github.com/Level/rocks-level
+   */
+  highWaterMarkBytes?: number | undefined
+
+  /**
+   * Only supported by [`classic-level`][1] and [`rocks-level`][2], and possibly by
+   * similar `abstract-level` implementations that are backed by a database on disk.
+   *
+   * [1]: https://github.com/Level/classic-level
+   * [2]: https://github.com/Level/rocks-level
+   */
+  fillCache?: boolean | undefined
 }
