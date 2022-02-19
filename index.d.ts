@@ -56,6 +56,8 @@ export interface ReadStreamOptions {
   /**
    * The maximum number of items to buffer internally before ceasing to read further
    * items.
+   *
+   * @defaultValue `1000`
    */
   highWaterMark?: number | undefined
 }
