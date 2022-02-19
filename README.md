@@ -67,6 +67,8 @@ With [npm](https://npmjs.org) do:
 npm install level-read-stream
 ```
 
+Usage from TypeScript also requires `npm install @types/readable-stream`.
+
 ## API
 
 ### `stream = new EntryStream(db[, options])`
@@ -93,7 +95,7 @@ An instance of `EntryStream`, `KeyStream` or `ValueStream` has the following spe
 
 #### `stream.db`
 
-A read-only reference to the `db` that was passed to the stream constructor.
+A read-only reference to the database that this stream is reading from.
 
 ## Contributing
 
