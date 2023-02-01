@@ -18,7 +18,7 @@
     "UPGRADING.md"
   ],
   "dependencies": {
-    "readable-stream": "^3.4.0"
+    "readable-stream": "^4.3.0"
   },
   "peerDependencies": {
     "abstract-level": "^1.0.0"
