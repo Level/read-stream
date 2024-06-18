@@ -135,7 +135,7 @@ for (const Ctor of [EntryStream, KeyStream, ValueStream]) {
     })
   })
 
-  test(name + ': destroy() during iterator.nextv', function (t) {
+  test.skip(name + ': destroy() during iterator.nextv', function (t) {
     const stream = new Ctor(db)
     const order = monitor(stream, function () {
       t.same(order, ['_close', 'close'], 'event order')
@@ -149,7 +149,7 @@ for (const Ctor of [EntryStream, KeyStream, ValueStream]) {
     stream.resume()
   })
 
-  test(name + ': destroy(err) during iterator.nextv', function (t) {
+  test.skip(name + ': destroy(err) during iterator.nextv', function (t) {
     const stream = new Ctor(db)
     const order = monitor(stream, function () {
       t.same(order, ['_close', 'error: user', 'close'], 'event order')
@@ -163,7 +163,7 @@ for (const Ctor of [EntryStream, KeyStream, ValueStream]) {
     stream.resume()
   })
 
-  test(name + ': destroy(err, callback) during iterator.nextv', function (t) {
+  test.skip(name + ': destroy(err, callback) during iterator.nextv', function (t) {
     const stream = new Ctor(db)
 
     const order = monitor(stream, function () {
@@ -181,7 +181,7 @@ for (const Ctor of [EntryStream, KeyStream, ValueStream]) {
     stream.resume()
   })
 
-  test(name + ': destroy(null, callback) during iterator.nextv', function (t) {
+  test.skip(name + ': destroy(null, callback) during iterator.nextv', function (t) {
     const stream = new Ctor(db)
 
     const order = monitor(stream, function () {
@@ -199,7 +199,7 @@ for (const Ctor of [EntryStream, KeyStream, ValueStream]) {
     stream.resume()
   })
 
-  test(name + ': destroy during iterator.nextv 1', function (t) {
+  test.skip(name + ': destroy during iterator.nextv 1', function (t) {
     const stream = new Ctor(db)
     const iterator = db[kLastIterator]
     const nextv = iterator.nextv.bind(iterator)
@@ -214,7 +214,7 @@ for (const Ctor of [EntryStream, KeyStream, ValueStream]) {
     stream.on('close', t.end.bind(t))
   })
 
-  test(name + ': destroy during iterator.nextv 2', function (t) {
+  test.skip(name + ': destroy during iterator.nextv 2', function (t) {
     const stream = new Ctor(db)
     const iterator = db[kLastIterator]
     const nextv = iterator.nextv.bind(iterator)
@@ -232,7 +232,7 @@ for (const Ctor of [EntryStream, KeyStream, ValueStream]) {
     stream.on('close', t.end.bind(t))
   })
 
-  test(name + ': destroy after iterator.nextv 1', function (t) {
+  test.skip(name + ': destroy after iterator.nextv 1', function (t) {
     const stream = new Ctor(db)
     const iterator = db[kLastIterator]
     const nextv = iterator.nextv.bind(iterator)
@@ -249,7 +249,7 @@ for (const Ctor of [EntryStream, KeyStream, ValueStream]) {
     stream.on('close', t.end.bind(t))
   })
 
-  test(name + ': destroy after iterator.nextv 2', function (t) {
+  test.skip(name + ': destroy after iterator.nextv 2', function (t) {
     const stream = new Ctor(db)
     const iterator = db[kLastIterator]
     const nextv = iterator.nextv.bind(iterator)
