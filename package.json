@@ -21,7 +21,7 @@
     "readable-stream": "^3.4.0"
   },
   "peerDependencies": {
-    "abstract-level": "^1.0.0"
+    "abstract-level": ">=1.0.0"
   },
   "peerDependenciesMeta": {
     "abstract-level": {
