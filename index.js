@@ -25,7 +25,6 @@ class LevelReadStream extends Readable {
     // Detect abstract-level 2 by the presence of hooks. Version 2 doesn't
     // support callbacks anymore. Version 1 does also support promises but
     // that would be slower because it works by wrapping the callback API.
-    // TODO: test against memory-level once it has upgraded.
     this[kPromises] = db.hooks !== undefined
 
     // NOTE: use autoDestroy option when it lands in readable-stream
