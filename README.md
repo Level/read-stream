@@ -7,7 +7,7 @@
 [![level badge][level-badge]](https://github.com/Level/awesome)
 [![npm](https://img.shields.io/npm/v/level-read-stream.svg)](https://www.npmjs.com/package/level-read-stream)
 [![Node version](https://img.shields.io/node/v/level-read-stream.svg)](https://www.npmjs.com/package/level-read-stream)
-[![Test](https://img.shields.io/github/workflow/status/Level/read-stream/Test?label=test)](https://github.com/Level/read-stream/actions/workflows/test.yml)
+[![Test](https://img.shields.io/github/actions/workflow/status/Level/read-stream/test.yml?branch=main\&label=test)](https://github.com/Level/read-stream/actions/workflows/test.yml)
 [![Coverage](https://img.shields.io/codecov/c/github/Level/read-stream?label=&logo=codecov&logoColor=fff)](https://codecov.io/gh/Level/read-stream)
 [![Standard](https://img.shields.io/badge/standard-informational?logo=javascript&logoColor=fff)](https://standardjs.com)
 [![Common Changelog](https://common-changelog.org/badge.svg)](https://common-changelog.org)
