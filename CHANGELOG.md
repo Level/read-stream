@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.1.1] - 2024-10-22
+
+### Fixed
+
+- Use promise API for abstract-level 2 compatibility ([#18](https://github.com/Level/read-stream/issues/18)) ([`912041a`](https://github.com/Level/read-stream/commit/912041a)) (Vincent Weevers)
+
 ## [1.1.0] - 2022-02-19
 
 ### Added
@@ -21,6 +27,8 @@
 ## [1.0.0] - 2021-12-10
 
 _:seedling: Initial release, forked from [`level-iterator-stream`](https://github.com/Level/iterator-stream)._
+
+[1.1.1]: https://github.com/Level/read-stream/releases/tag/v1.1.1
 
 [1.1.0]: https://github.com/Level/read-stream/releases/tag/v1.1.0
 
