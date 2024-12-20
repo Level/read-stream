@@ -2,6 +2,10 @@
 
 This document describes breaking changes and how to upgrade. For a complete list of changes including minor and patch releases, please refer to the [changelog](CHANGELOG.md).
 
+## 2.0.0
+
+Drops support of `abstract-level` 1 (and its callback API) as well as Node.js < 18. Stick with `level-read-stream` 1 if you need to support both `abstract-level` 1 and 2.
+
 ## 1.0.0
 
 If you are migrating from `levelup` or `level <= 7` to an [`abstract-level`](https://github.com/Level/abstract-level) database, that database will no longer have stream methods. If you previously did:

@@ -3,7 +3,6 @@
 const { Readable } = require('readable-stream')
 
 const kIterator = Symbol('iterator')
-const kPromises = Symbol('promises')
 const kNextv = Symbol('nextv')
 const kNextvLegacy = Symbol('nextvLegacy')
 const kDestroy = Symbol('destroy')
@@ -22,11 +21,6 @@ class LevelReadStream extends Readable {
     this[kNextv] = this[kNextv].bind(this)
     this[kNextvLegacy] = this[kNextvLegacy].bind(this)
     this[kDestroy] = this.destroy.bind(this)
-
-    // Detect abstract-level 2 by the presence of hooks. Version 2 doesn't
-    // support callbacks anymore. Version 1 does also support promises but
-    // that would be slower because it works by wrapping the callback API.
-    this[kPromises] = db.hooks !== undefined
   }
 
   get db () {
@@ -36,14 +30,10 @@ class LevelReadStream extends Readable {
   _read (size) {
     if (this.destroyed) return
 
-    if (this[kPromises]) {
-      this[kIterator].nextv(size).then(
-        this[kNextv],
-        this[kDestroy]
-      )
-    } else {
-      this[kIterator].nextv(size, this[kNextvLegacy])
-    }
+    this[kIterator].nextv(size).then(
+      this[kNextv],
+      this[kDestroy]
+    )
   }
 
   [kNextvLegacy] (err, items) {
@@ -72,16 +62,10 @@ class LevelReadStream extends Readable {
   }
 
   _destroy (err, callback) {
-    if (this[kPromises]) {
-      this[kIterator].close().then(
-        err ? () => callback(err) : callback,
-        callback
-      )
-    } else {
-      this[kIterator].close(function (err2) {
-        callback(err || err2)
-      })
-    }
+    this[kIterator].close().then(
+      err ? () => callback(err) : callback,
+      callback
+    )
   }
 }
 
