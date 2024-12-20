@@ -3,13 +3,8 @@
 const test = require('tape')
 const { MemoryLevel } = require('memory-level')
 const { EntryStream, KeyStream, ValueStream } = require('.')
-const { Writable, pipeline } = require('readable-stream')
+const { Writable, promises: { pipeline } } = require('readable-stream')
 const addSecretListener = require('secret-event-listener')
-
-const delayedPipeline = async (...args) => {
-  await pipeline(...args)
-  await new Promise(setImmediate)
-}
 
 let db
 const kLastIterator = Symbol('lastIterator')
@@ -39,8 +34,7 @@ test('setup', async function (t) {
 test('EntryStream', async function (t) {
   t.plan(1)
 
-  // TODO: pipeline returns before Concat calls the callback
-  await delayedPipeline(new EntryStream(db), new Concat((acc) => {
+  await pipeline(new EntryStream(db), new Concat((acc) => {
     t.same(acc, data)
   }))
 })
@@ -48,7 +42,7 @@ test('EntryStream', async function (t) {
 test('KeyStream', async function (t) {
   t.plan(1)
 
-  await delayedPipeline(new KeyStream(db), new Concat((acc) => {
+  await pipeline(new KeyStream(db), new Concat((acc) => {
     t.same(acc, data.map(x => x.key))
   }))
 })
@@ -56,7 +50,7 @@ test('KeyStream', async function (t) {
 test('ValueStream', async function (t) {
   t.plan(1)
 
-  await delayedPipeline(new ValueStream(db), new Concat((acc) => {
+  await pipeline(new ValueStream(db), new Concat((acc) => {
     t.same(acc, data.map(x => x.value))
   }))
 })
@@ -113,7 +107,7 @@ for (const Ctor of [EntryStream, KeyStream, ValueStream]) {
   test(name + ': destroy(err, callback)', function (t) {
     const stream = new Ctor(db)
     const order = monitor(stream, function () {
-      t.same(order, ['_close', 'callback', 'close'])
+      t.same(order, ['_close', 'callback', 'error: user', 'close'])
       t.end()
     })
 
@@ -168,7 +162,7 @@ for (const Ctor of [EntryStream, KeyStream, ValueStream]) {
     const stream = new Ctor(db)
 
     const order = monitor(stream, function () {
-      t.same(order, ['_close', 'callback', 'close'], 'event order')
+      t.same(order, ['_close', 'callback', 'error: user', 'close'], 'event order')
       t.end()
     })
 
