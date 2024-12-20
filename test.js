@@ -62,7 +62,7 @@ for (const Ctor of [EntryStream, KeyStream, ValueStream]) {
     const stream = new Ctor(db)
 
     const order = monitor(stream, function () {
-      t.same(order.filter(withoutDataEvents), ['_close', 'end', 'close'])
+      t.same(order.filter(withoutDataEvents), ['end', '_close', 'close'])
       t.end()
     })
 

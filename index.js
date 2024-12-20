@@ -14,6 +14,7 @@ class LevelReadStream extends Readable {
 
     super({
       objectMode: true,
+      autoDestroy: true,
       highWaterMark: highWaterMark || 1000
     })
 
@@ -26,9 +27,6 @@ class LevelReadStream extends Readable {
     // support callbacks anymore. Version 1 does also support promises but
     // that would be slower because it works by wrapping the callback API.
     this[kPromises] = db.hooks !== undefined
-
-    // NOTE: use autoDestroy option when it lands in readable-stream
-    this.once('end', this.destroy.bind(this, null, null))
   }
 
   get db () {
