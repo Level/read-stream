@@ -3,21 +3,21 @@ on: [push, pull_request]
 permissions:
   contents: read
 jobs:
-  test:
+  node:
     runs-on: ubuntu-latest
     strategy:
       matrix:
         node: [18, 20, 22]
-    name: Node ${{ matrix.node }}
+    name: Node.js ${{ matrix.node }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
-      - name: Use node ${{ matrix.node }}
-        uses: actions/setup-node@v3
+        uses: actions/checkout@v4
+      - name: Setup Node.js ${{ matrix.node }}
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
       - name: Install
-        run: npm install
+        run: npm install --ignore-scripts
       - name: Test
         run: npm test
       - name: Coverage
@@ -26,3 +26,22 @@ jobs:
         uses: codecov/codecov-action@v3
         with:
           file: coverage/lcov.info
+  browsers:
+    name: Browsers
+    if: ${{ github.actor != 'dependabot[bot]' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+      - name: Install
+        run: npm install --ignore-scripts
+      - name: Install Playwright dependencies
+        run: npx --no-install playwright install-deps
+      - name: Install Playwright
+        run: npx --no-install playwright install
+      - name: Test
+        run: npm run test-browsers
