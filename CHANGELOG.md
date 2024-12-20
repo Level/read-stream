@@ -1,5 +1,19 @@
 # Changelog
 
+## [2.0.0] - 2024-12-20
+
+_If you are upgrading: please see [`UPGRADING.md`](UPGRADING.md)._
+
+### Changed
+
+- Bump `readable-stream` from 3 to 4 ([#15](https://github.com/Level/read-stream/issues/15)) ([`fc4fb51`](https://github.com/Level/read-stream/commit/fc4fb51)) (Vincent Weevers)
+- Use `autoDestroy` option ([#13](https://github.com/Level/read-stream/issues/13)) ([`190f920`](https://github.com/Level/read-stream/commit/190f920)) (Vincent Weevers)
+
+### Removed
+
+- **Breaking:** drop support of `abstract-level` 1 ([`d29bcef`](https://github.com/Level/read-stream/commit/d29bcef)) (Vincent Weevers)
+- **Breaking:** drop support of Node.js < 18 ([`77a492d`](https://github.com/Level/read-stream/commit/77a492d)) (Vincent Weevers)
+
 ## [1.1.1] - 2024-10-22
 
 ### Fixed
@@ -27,6 +41,8 @@
 ## [1.0.0] - 2021-12-10
 
 _:seedling: Initial release, forked from [`level-iterator-stream`](https://github.com/Level/iterator-stream)._
+
+[2.0.0]: https://github.com/Level/read-stream/releases/tag/v2.0.0
 
 [1.1.1]: https://github.com/Level/read-stream/releases/tag/v1.1.1
 
