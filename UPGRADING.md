@@ -50,3 +50,5 @@ You must now do:
 ```js
 const keys = new KeyStream(db)
 ```
+
+For TypeScript users: you will also need to `npm install @types/readable-stream`.
