@@ -35,7 +35,7 @@
     "airtap": "^5.0.0",
     "airtap-playwright": "^1.0.1",
     "hallmark": "^5.0.1",
-    "memory-level": "^2.0.0",
+    "memory-level": "^3.1.0",
     "nyc": "^17.1.0",
     "secret-event-listener": "^1.0.0",
     "standard": "^17.1.2",
