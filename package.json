@@ -19,6 +19,7 @@
     "UPGRADING.md"
   ],
   "dependencies": {
+    "@types/readable-stream": "^4.0.18",
     "readable-stream": "^4.6.0"
   },
   "peerDependencies": {
@@ -30,7 +31,6 @@
     }
   },
   "devDependencies": {
-    "@types/readable-stream": "^4.0.18",
     "@voxpelli/tsconfig": "^15.1.0",
     "airtap": "^5.0.0",
     "airtap-playwright": "^1.0.1",
